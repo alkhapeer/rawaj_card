@@ -1,5 +1,5 @@
 /* global fetch */
-const GAS_URL = localStorage.getItem('https://script.google.com/macros/s/AKfycbwU-13v59BGFVMabeTuGLQIaZZh6Jnax-fNkauA7FURR8e3WMnunkSMZnE3cVdvd_ZL/exec') || 'https://script.google.com/macros/s/AKfycbwU-13v59BGFVMabeTuGLQIaZZh6Jnax-fNkauA7FURR8e3WMnunkSMZnE3cVdvd_ZL/exec';
+const GAS_URL = localStorage.getItem('GAS_URL') || 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
 
 const I18N = {
   ar: {
