@@ -1,83 +1,162 @@
 /* global fetch */
-// === إعداد عنوان الويب لتطبيق Google Apps Script ===
-// بعد النشر كـ Web App انسخ الرابط وضعه هنا:
-const GAS_URL = localStorage.getItem('https://script.google.com/macros/s/AKfycbyUfVDIqxhHO3bwo2FZXxj25JPjZZWitYXeUS93uFAL1Q80OXeo9UhZjVlONpTeOkI/exec') || 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+const GAS_URL = localStorage.getItem('GAS_URL') || 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
 
-// خيار سريع لتغيير الرابط من الواجهة (للاختبار دون إعادة بناء)
+const I18N = {
+  ar: {
+    title: "متجر البطاقات - PWA",
+    appName: "متجر البطاقات",
+    tab: { check:"التحقق من رمز البطاقة", aff:"التسويق بالعمولة", market:"البطاقات المعروضة للبيع", guide:"إرشادات" },
+    check: { title:"التحقق من رمز البطاقة", codeLabel:"رمز البطاقة", codePh:"مثال: ABC123", btn:"تحقق", ping:"تشخيص الاتصال (Ping)",
+             notFound:"لم يتم العثور على البطاقة.", active:"مفعّلة", inactive:"غير مفعّلة", checking:"جاري التحقق..." },
+    aff: { title:"التسويق بالعمولة - تسجيل جديد", name:"الاسم", email:"البريد الإلكتروني", whatsapp:"واتساب", country:"الدولة", btn:"تسجيل",
+           saving:"جاري الحفظ...", ok:"تم التسجيل بنجاح.", yourId:"رمز المُسوق الخاص بك:" },
+    market: {
+      addTitle:"إضافة بطاقة للبيع", code:"رمز البطاقة (غير مفعّل)", country:"الدولة", contact:"وسيلة التواصل",
+      price:"السعر", addBtn:"إضافة",
+      filterTitle:"تصفية البطاقات", fCountry:"الدولة", fMin:"أدنى سعر", fMax:"أقصى سعر", applyFilter:"تطبيق",
+      listTitle:"قائمة البطاقات المعروضة", refresh:"تحديث القائمة",
+      soldTitle:"وضع بطاقة مباعة", soldCode:"رمز البطاقة", soldBtn:"تعيين كمباعة",
+      loading:"جاري التحميل...", empty:"لا توجد بطاقات حالياً.", added:"تمت إضافة البطاقة إلى السوق.",
+      listErr:"تعذّر تحميل القائمة.", postErr:"تعذّر الاتصال بالخادم."
+    },
+    guide: {
+      title:"إرشادات البيع والشراء",
+      p1:"هذا التطبيق يعتمد على Google Sheets لحفظ واسترجاع البيانات عبر Google Apps Script.",
+      li1:"أضف بطاقة غير مفعّلة مع وسيلة تواصل واضحة.",
+      li2:"تواصل مباشرة بين البائع والمشتري وتحقق من الرمز.",
+      li3:"استخدم تبويب التحقق للتأكد من الرمز.",
+      p2:"لا يوجد نظام دفع داخل التطبيق."
+    }
+  },
+  en: {
+    title: "Cards Marketplace - PWA",
+    appName: "Cards Marketplace",
+    tab: { check:"Check Card Code", aff:"Affiliate Signup", market:"Cards for Sale", guide:"Guide" },
+    check: { title:"Check Card Code", codeLabel:"Card Code", codePh:"e.g., ABC123", btn:"Check", ping:"Ping Backend",
+             notFound:"Card not found.", active:"Active", inactive:"Inactive", checking:"Checking..." },
+    aff: { title:"Affiliate — New Signup", name:"Name", email:"Email", whatsapp:"WhatsApp", country:"Country", btn:"Register",
+           saving:"Saving...", ok:"Registered successfully.", yourId:"Your affiliate ID:" },
+    market: {
+      addTitle:"Add Card to Market", code:"Card code (inactive)", country:"Country", contact:"Contact",
+      price:"Price", addBtn:"Add",
+      filterTitle:"Filter Cards", fCountry:"Country", fMin:"Min price", fMax:"Max price", applyFilter:"Apply",
+      listTitle:"Available Cards", refresh:"Refresh list",
+      soldTitle:"Mark Card as Sold", soldCode:"Card code", soldBtn:"Mark Sold",
+      loading:"Loading...", empty:"No cards yet.", added:"Card added to market.",
+      listErr:"Failed to load list.", postErr:"Server connection failed."
+    },
+    guide: {
+      title:"Buying & Selling Guide",
+      p1:"This app uses Google Sheets via Apps Script for data storage.",
+      li1:"Sellers: add an inactive card with clear contact.",
+      li2:"Buyers: contact seller directly and verify the code.",
+      li3:"Use the Check tab to validate codes.",
+      p2:"No payment system inside the app."
+    }
+  }
+};
+
+function applyI18n(lang){
+  const dict = I18N[lang] || I18N.ar;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n').split('.').reduce((o,k)=>o&&o[k], dict);
+    if(typeof key === 'string') el.textContent = key;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-ph').split('.').reduce((o,k)=>o&&o[k], dict);
+    if(typeof key === 'string') el.placeholder = key;
+  });
+  const titleEl = document.querySelector('title[data-i18n="title"]');
+  if(titleEl) titleEl.textContent = dict.title;
+  document.documentElement.lang = (lang==='en'?'en':'ar');
+  document.documentElement.dir = (lang==='en'?'ltr':'rtl');
+  localStorage.setItem('lang', lang);
+}
+
+const initialLang = localStorage.getItem('lang') || 'ar';
+applyI18n(initialLang);
+document.getElementById('btn-ar').addEventListener('click', ()=>applyI18n('ar'));
+document.getElementById('btn-en').addEventListener('click', ()=>applyI18n('en'));
+
 window.setGASUrl = function (url){
   if(!url) return;
   localStorage.setItem('GAS_URL', url);
-  alert('تم حفظ رابط Apps Script مؤقتًا في المتصفح.');
+  alert('Saved GAS URL in this browser.');
 };
-
-// عناصر الواجهة
-const tabs = document.querySelectorAll('.tab-btn');
-const sections = document.querySelectorAll('.tab-section');
-
-tabs.forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    sections.forEach(s=>s.classList.remove('active'));
-    document.getElementById(btn.dataset.target).classList.add('active');
-  });
-});
-
-// أدوات عامة
-const jsonHeaders = { 'Content-Type':'application/json;charset=utf-8' };
 
 async function apiGet(params){
   const url = new URL(GAS_URL);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
   const res = await fetch(url.toString(), { method:'GET' });
-  if(!res.ok) throw new Error('GET failed: '+res.status);
+  if(!res.ok){
+    const txt = await res.text().catch(()=>'');
+    throw new Error(`GET ${res.status} ${res.statusText} — ${txt.slice(0,200)}`);
+  }
   return res.json();
 }
 
 async function apiPost(action, payload){
+  const body = new URLSearchParams({ action, ...payload });
   const res = await fetch(GAS_URL, {
     method:'POST',
-    headers: jsonHeaders,
-    body: JSON.stringify({ action, ...payload })
+    headers: { 'Content-Type':'application/x-www-form-urlencoded;charset=utf-8' },
+    body
   });
-  if(!res.ok) throw new Error('POST failed: '+res.status);
+  if(!res.ok){
+    const txt = await res.text().catch(()=>'');
+    throw new Error(`POST ${res.status} ${res.statusText} — ${txt.slice(0,200)}`);
+  }
   return res.json();
 }
 
-// --- التحقق من رمز البطاقة ---
+// Tabs
+const tabs = document.querySelectorAll('.tab-btn');
+const sections = document.querySelectorAll('.tab-section');
+tabs.forEach(btn=>btn.addEventListener('click',()=>{
+  sections.forEach(s=>s.classList.remove('active'));
+  document.getElementById(btn.dataset.target).classList.add('active');
+}));
+
+// Ping
+document.getElementById('btn-ping').addEventListener('click', async ()=>{
+  try{
+    const r = await apiGet({ action:'ping' });
+    alert('Ping => ' + JSON.stringify(r));
+  }catch(err){ alert('Ping error: ' + err); }
+});
+
+// Check
 const formCheck = document.getElementById('form-check');
 const checkResult = document.getElementById('check-result');
-
 formCheck.addEventListener('submit', async (e)=>{
   e.preventDefault();
-  checkResult.textContent = 'جاري التحقق...';
+  const dict = I18N[localStorage.getItem('lang')||'ar'];
+  checkResult.textContent = dict.check.checking;
   try {
     const code = document.getElementById('check-code').value.trim();
     const data = await apiGet({ action:'checkCard', code });
     if(!data.found){
-      checkResult.innerHTML = '<span class="warn">لم يتم العثور على البطاقة.</span>';
+      checkResult.innerHTML = `<span class="warn">${dict.check.notFound}</span>`;
       return;
     }
-    const badge = data.active ? '<span class="ok">مفعّلة</span>' : '<span class="warn">غير مفعّلة</span>';
-    checkResult.innerHTML = `
-      <div>
-        <div>الحالة: ${badge}</div>
-        ${data.row.holderName ? `<div>الاسم: <b>${data.row.holderName}</b></div>` : ''}
-        ${data.row.country ? `<div>الدولة: ${data.row.country}</div>` : ''}
-        ${data.row.notes ? `<div>ملاحظات: ${data.row.notes}</div>` : ''}
-      </div>
-    `;
+    const badge = data.active ? `<span class="ok">${dict.check.active}</span>` : `<span class="warn">${dict.check.inactive}</span>`;
+    checkResult.innerHTML = `<div><div>${badge}</div>${
+      data.row.holderName ? `<div><b>${data.row.holderName}</b></div>` : ''}${
+      data.row.country ? `<div>${data.row.country}</div>` : ''}${
+      data.row.notes ? `<div>${data.row.notes}</div>` : ''}</div>`;
   } catch(err){
     console.error(err);
-    checkResult.innerHTML = '<span class="err">تعذّر الاتصال بالخادم.</span>';
+    checkResult.innerHTML = '<span class="err">Server error</span>';
   }
 });
 
-// --- التسويق بالعمولة ---
+// Affiliate
 const formAff = document.getElementById('form-affiliate');
 const affResult = document.getElementById('aff-result');
-
 formAff.addEventListener('submit', async (e)=>{
   e.preventDefault();
-  affResult.textContent = 'جاري الحفظ...';
+  const dict = I18N[localStorage.getItem('lang')||'ar'];
+  affResult.textContent = dict.aff.saving;
   try {
     const name = document.getElementById('aff-name').value.trim();
     const email = document.getElementById('aff-email').value.trim();
@@ -85,68 +164,104 @@ formAff.addEventListener('submit', async (e)=>{
     const country = document.getElementById('aff-country').value.trim();
     const data = await apiPost('newAffiliate',{ name, email, whatsapp, country });
     if(data.ok){
-      affResult.innerHTML = `
-        <div class="ok">تم التسجيل بنجاح.</div>
-        <div>رمز المُسوق الخاص بك: <b>${data.affiliateId}</b></div>
-      `;
+      affResult.innerHTML = `<div class="ok">${dict.aff.ok}</div><div>${dict.aff.yourId} <b>${data.affiliateId}</b></div>`;
       formAff.reset();
     }else{
-      affResult.innerHTML = `<span class="err">خطأ: ${data.error||'تعذّر الحفظ'}</span>`;
+      affResult.innerHTML = `<span class="err">Error: ${data.error||'Failed'}</span>`;
     }
   } catch(err){
     console.error(err);
-    affResult.innerHTML = '<span class="err">تعذّر الاتصال بالخادم.</span>';
+    affResult.innerHTML = '<span class="err">Server error</span>';
   }
 });
 
-// --- إضافة للسوق + عرض القائمة ---
+// Market
 const formMarket = document.getElementById('form-market');
 const marketList = document.getElementById('market-list');
 const btnRefresh = document.getElementById('btn-refresh-market');
+const btnApplyFilter = document.getElementById('btn-apply-filter');
+let marketData = [];
 
 formMarket.addEventListener('submit', async (e)=>{
   e.preventDefault();
+  const dict = I18N[localStorage.getItem('lang')||'ar'];
   try {
     const code = document.getElementById('mkt-code').value.trim();
     const country = document.getElementById('mkt-country').value.trim();
     const contact = document.getElementById('mkt-contact').value.trim();
-    const data = await apiPost('addToMarket',{ code, country, contact });
+    const price = document.getElementById('mkt-price').value.trim();
+    const data = await apiPost('addToMarket',{ code, country, contact, price });
     if(data.ok){
-      alert('تمت إضافة البطاقة إلى السوق.');
+      alert(dict.market.added);
       formMarket.reset();
       await loadMarket();
     }else{
-      alert('خطأ: '+(data.error||'تعذّر الإضافة'));
+      alert('Error: '+(data.error||'Failed'));
     }
   } catch(err){
     console.error(err);
-    alert('تعذّر الاتصال بالخادم.');
+    alert(I18N[localStorage.getItem('lang')||'ar'].market.postErr);
   }
 });
 
 btnRefresh.addEventListener('click', loadMarket);
+btnApplyFilter.addEventListener('click', ()=>renderMarket());
 
 async function loadMarket(){
-  marketList.innerHTML = '<div class="card">جاري التحميل...</div>';
+  const dict = I18N[localStorage.getItem('lang')||'ar'];
+  marketList.innerHTML = `<div class="card">${dict.market.loading}</div>`;
   try{
     const data = await apiGet({ action:'listMarket' });
-    if(!data.rows || data.rows.length===0){
-      marketList.innerHTML = '<div class="card warn">لا توجد بطاقات حالياً.</div>';
-      return;
-    }
-    marketList.innerHTML = data.rows.map(r => (`
-      <div class="market-card">
-        <h4>رمز: ${r.code}</h4>
-        <small>الدولة: ${r.country||'-'}</small><br/>
-        <small>تواصل: ${r.contact||'-'}</small><br/>
-        <small>أضيفت بتاريخ: ${r.timestamp||'-'}</small>
-      </div>
-    `)).join('');
+    marketData = data.rows || [];
+    renderMarket();
   }catch(err){
     console.error(err);
-    marketList.innerHTML = '<div class="card err">تعذّر تحميل القائمة.</div>';
+    marketList.innerHTML = `<div class="card err">${dict.market.listErr}</div>`;
   }
 }
 
-// حمّل السوق مبدئياً
+function renderMarket(){
+  const dict = I18N[localStorage.getItem('lang')||'ar'];
+  const fc = document.getElementById('flt-country').value.trim().toLowerCase();
+  const fmin = parseFloat(document.getElementById('flt-min').value);
+  const fmax = parseFloat(document.getElementById('flt-max').value);
+  let rows = [...marketData];
+  if(fc) rows = rows.filter(r => String(r.country||'').toLowerCase().includes(fc));
+  if(!isNaN(fmin)) rows = rows.filter(r => parseFloat(r.price||0) >= fmin);
+  if(!isNaN(fmax)) rows = rows.filter(r => parseFloat(r.price||0) <= fmax);
+  if(rows.length===0){
+    marketList.innerHTML = `<div class="card warn">${dict.market.empty}</div>`;
+    return;
+  }
+  marketList.innerHTML = rows.map(r => (`
+    <div class="market-card">
+      <h4>${r.code}</h4>
+      <small>${r.country||'-'}</small><br/>
+      <small>${r.contact||'-'}</small><br/>
+      <small>${(r.price!=null && r.price!=='')? r.price : '-'}</small><br/>
+      <small>${r.timestamp||'-'}</small>
+    </div>
+  `)).join('');
+}
+
+// mark sold
+const formSold = document.getElementById('form-sold');
+formSold.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  try{
+    const code = document.getElementById('sold-code').value.trim();
+    const data = await apiPost('markSold', { code });
+    if(data.ok){
+      alert('Marked as sold.');
+      formSold.reset();
+      await loadMarket();
+    }else{
+      alert('Error: '+(data.error||'Failed'));
+    }
+  }catch(err){
+    console.error(err);
+    alert('Server error');
+  }
+});
+
 loadMarket();

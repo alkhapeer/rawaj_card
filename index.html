@@ -4,13 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0ea5e9" />
-  <title>متجر البطاقات - PWA</title>
+  <title data-i18n="title">متجر البطاقات - PWA</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="assets/icon-192.png" />
-  <meta name="description" content="تطبيق ويب تقدمي لإدارة البطاقات والتسويق بالعمولة عبر Google Sheets" />
+  <meta name="description" content="PWA for cards marketplace using Google Sheets via Apps Script" />
   <script>
-    // Register Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js').catch(console.error);
@@ -20,82 +19,101 @@
 </head>
 <body>
   <header class="app-header">
-    <h1>متجر البطاقات</h1>
+    <div class="header-row">
+      <h1 data-i18n="appName">متجر البطاقات</h1>
+      <div class="lang-switch">
+        <button id="btn-ar" class="lang-btn">العربية</button>
+        <button id="btn-en" class="lang-btn">English</button>
+      </div>
+    </div>
     <nav class="tabs">
-      <button class="tab-btn" data-target="tab-check">التحقق من رمز البطاقة</button>
-      <button class="tab-btn" data-target="tab-affiliate">التسويق بالعمولة</button>
-      <button class="tab-btn" data-target="tab-market">البطاقات المعروضة للبيع</button>
-      <button class="tab-btn" data-target="tab-guide">إرشادات</button>
+      <button class="tab-btn" data-target="tab-check" data-i18n="tab.check">التحقق من رمز البطاقة</button>
+      <button class="tab-btn" data-target="tab-affiliate" data-i18n="tab.aff">التسويق بالعمولة</button>
+      <button class="tab-btn" data-target="tab-market" data-i18n="tab.market">البطاقات المعروضة للبيع</button>
+      <button class="tab-btn" data-target="tab-guide" data-i18n="tab.guide">إرشادات</button>
     </nav>
   </header>
 
   <main>
-    <!-- التحقق من رمز البطاقة -->
     <section id="tab-check" class="tab-section active">
-      <h2>التحقق من رمز البطاقة</h2>
+      <h2 data-i18n="check.title">التحقق من رمز البطاقة</h2>
       <form id="form-check" class="card">
-        <label>رمز البطاقة</label>
-        <input type="text" id="check-code" placeholder="مثال: ABC123" required />
-        <button type="submit">تحقق</button>
+        <label data-i18n="check.codeLabel">رمز البطاقة</label>
+        <input type="text" id="check-code" data-i18n-ph="check.codePh" placeholder="مثال: ABC123" required />
+        <button type="submit" data-i18n="check.btn">تحقق</button>
       </form>
       <div id="check-result" class="result card"></div>
+      <button class="secondary" id="btn-ping" data-i18n="check.ping">تشخيص الاتصال (Ping)</button>
     </section>
 
-    <!-- التسويق بالعمولة -->
     <section id="tab-affiliate" class="tab-section">
-      <h2>التسويق بالعمولة - تسجيل جديد</h2>
+      <h2 data-i18n="aff.title">التسويق بالعمولة - تسجيل جديد</h2>
       <form id="form-affiliate" class="card">
-        <label>الاسم</label>
+        <label data-i18n="aff.name">الاسم</label>
         <input type="text" id="aff-name" required />
-        <label>البريد الإلكتروني</label>
+        <label data-i18n="aff.email">البريد الإلكتروني</label>
         <input type="email" id="aff-email" required />
-        <label>واتساب</label>
+        <label data-i18n="aff.whatsapp">واتساب</label>
         <input type="text" id="aff-whatsapp" placeholder="+201234567890" required />
-        <label>الدولة</label>
+        <label data-i18n="aff.country">الدولة</label>
         <input type="text" id="aff-country" required />
-        <button type="submit">تسجيل</button>
+        <button type="submit" data-i18n="aff.btn">تسجيل</button>
       </form>
       <div id="aff-result" class="result card"></div>
     </section>
 
-    <!-- البطاقات المعروضة للبيع -->
     <section id="tab-market" class="tab-section">
-      <h2>إضافة بطاقة للبيع</h2>
+      <h2 data-i18n="market.addTitle">إضافة بطاقة للبيع</h2>
       <form id="form-market" class="card">
-        <label>رمز البطاقة (غير مفعّل)</label>
+        <label data-i18n="market.code">رمز البطاقة (غير مفعّل)</label>
         <input type="text" id="mkt-code" required />
-        <label>الدولة</label>
+        <label data-i18n="market.country">الدولة</label>
         <input type="text" id="mkt-country" required />
-        <label>وسيلة التواصل</label>
+        <label data-i18n="market.contact">وسيلة التواصل</label>
         <input type="text" id="mkt-contact" placeholder="واتساب/بريد/تيليجرام" required />
-        <button type="submit">إضافة</button>
+        <label data-i18n="market.price">السعر</label>
+        <input type="number" id="mkt-price" min="0" step="0.01" placeholder="0" />
+        <button type="submit" data-i18n="market.addBtn">إضافة</button>
       </form>
 
-      <h3 style="margin-top:1rem">قائمة البطاقات المعروضة</h3>
+      <div class="card filters">
+        <h3 data-i18n="market.filterTitle">تصفية البطاقات</h3>
+        <div class="filters-row">
+          <input type="text" id="flt-country" data-i18n-ph="market.fCountry" placeholder="الدولة" />
+          <input type="number" id="flt-min" data-i18n-ph="market.fMin" placeholder="أدنى سعر" min="0" step="0.01" />
+          <input type="number" id="flt-max" data-i18n-ph="market.fMax" placeholder="أقصى سعر" min="0" step="0.01" />
+          <button id="btn-apply-filter" class="secondary" data-i18n="market.applyFilter">تطبيق</button>
+        </div>
+      </div>
+
+      <h3 style="margin-top:1rem" data-i18n="market.listTitle">قائمة البطاقات المعروضة</h3>
       <div id="market-list" class="grid"></div>
-      <button id="btn-refresh-market" class="secondary">تحديث القائمة</button>
+      <button id="btn-refresh-market" class="secondary" data-i18n="market.refresh">تحديث القائمة</button>
+
+      <h3 style="margin-top:1rem" data-i18n="market.soldTitle">وضع بطاقة مباعة</h3>
+      <form id="form-sold" class="card">
+        <label data-i18n="market.soldCode">رمز البطاقة</label>
+        <input type="text" id="sold-code" required />
+        <button type="submit" data-i18n="market.soldBtn">تعيين كمباعة</button>
+      </form>
     </section>
 
-    <!-- صفحة إرشادات -->
     <section id="tab-guide" class="tab-section">
-      <h2>إرشادات البيع والشراء</h2>
+      <h2 data-i18n="guide.title">إرشادات البيع والشراء</h2>
       <article class="card">
-        <p>
-          هذا التطبيق يعتمد على Google Sheets فقط لحفظ واسترجاع البيانات من خلال Google Apps Script.
-          يمكن التحقق من رموز البطاقات، تسجيل مسوقين بالعمولة، وإضافة بطاقات غير مفعّلة للبيع.
-        </p>
+        <p data-i18n="guide.p1">هذا التطبيق يعتمد على Google Sheets لحفظ واسترجاع البيانات عبر Google Apps Script.</p>
         <ol>
-          <li>للبائع: أضف البطاقة غير المفعّلة مع وسيلة تواصل واضحة.</li>
-          <li>للمشتري: تواصل مع البائع مباشرة، وتأكد من الرمز قبل الشراء.</li>
-          <li>للتحقق: استخدم تبويب "التحقق من رمز البطاقة" وأدخل الرمز.</li>
+          <li data-i18n="guide.li1">أضف بطاقة غير مفعّلة مع وسيلة تواصل واضحة.</li>
+          <li data-i18n="guide.li2">تواصل مباشرة بين البائع والمشتري وتحقق من الرمز.</li>
+          <li data-i18n="guide.li3">استخدم تبويب التحقق للتأكد من الرمز.</li>
         </ol>
-        <p>ملاحظة: لا يوجد نظام دفع داخل التطبيق. عملية البيع تتم بين البائع والمشتري.</p>
+        <p data-i18n="guide.p2">لا يوجد نظام دفع داخل التطبيق.</p>
       </article>
     </section>
   </main>
 
   <footer class="app-footer">
-    <small>نسخة تجريبية · تعمل دون قواعد بيانات · مدعومة بـ Google Sheets</small>
+    <small>© 2025</small>
   </footer>
 
   <script src="app.js"></script>
