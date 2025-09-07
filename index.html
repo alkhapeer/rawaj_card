@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <title>متجر البطاقات - PWA</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="assets/icon-192.png" />
+  <meta name="description" content="تطبيق ويب تقدمي لإدارة البطاقات والتسويق بالعمولة عبر Google Sheets" />
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(console.error);
+      });
+    }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <h1>متجر البطاقات</h1>
+    <nav class="tabs">
+      <button class="tab-btn" data-target="tab-check">التحقق من رمز البطاقة</button>
+      <button class="tab-btn" data-target="tab-affiliate">التسويق بالعمولة</button>
+      <button class="tab-btn" data-target="tab-market">البطاقات المعروضة للبيع</button>
+      <button class="tab-btn" data-target="tab-guide">إرشادات</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- التحقق من رمز البطاقة -->
+    <section id="tab-check" class="tab-section active">
+      <h2>التحقق من رمز البطاقة</h2>
+      <form id="form-check" class="card">
+        <label>رمز البطاقة</label>
+        <input type="text" id="check-code" placeholder="مثال: ABC123" required />
+        <button type="submit">تحقق</button>
+      </form>
+      <div id="check-result" class="result card"></div>
+    </section>
+
+    <!-- التسويق بالعمولة -->
+    <section id="tab-affiliate" class="tab-section">
+      <h2>التسويق بالعمولة - تسجيل جديد</h2>
+      <form id="form-affiliate" class="card">
+        <label>الاسم</label>
+        <input type="text" id="aff-name" required />
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="aff-email" required />
+        <label>واتساب</label>
+        <input type="text" id="aff-whatsapp" placeholder="+201234567890" required />
+        <label>الدولة</label>
+        <input type="text" id="aff-country" required />
+        <button type="submit">تسجيل</button>
+      </form>
+      <div id="aff-result" class="result card"></div>
+    </section>
+
+    <!-- البطاقات المعروضة للبيع -->
+    <section id="tab-market" class="tab-section">
+      <h2>إضافة بطاقة للبيع</h2>
+      <form id="form-market" class="card">
+        <label>رمز البطاقة (غير مفعّل)</label>
+        <input type="text" id="mkt-code" required />
+        <label>الدولة</label>
+        <input type="text" id="mkt-country" required />
+        <label>وسيلة التواصل</label>
+        <input type="text" id="mkt-contact" placeholder="واتساب/بريد/تيليجرام" required />
+        <button type="submit">إضافة</button>
+      </form>
+
+      <h3 style="margin-top:1rem">قائمة البطاقات المعروضة</h3>
+      <div id="market-list" class="grid"></div>
+      <button id="btn-refresh-market" class="secondary">تحديث القائمة</button>
+    </section>
+
+    <!-- صفحة إرشادات -->
+    <section id="tab-guide" class="tab-section">
+      <h2>إرشادات البيع والشراء</h2>
+      <article class="card">
+        <p>
+          هذا التطبيق يعتمد على Google Sheets فقط لحفظ واسترجاع البيانات من خلال Google Apps Script.
+          يمكن التحقق من رموز البطاقات، تسجيل مسوقين بالعمولة، وإضافة بطاقات غير مفعّلة للبيع.
+        </p>
+        <ol>
+          <li>للبائع: أضف البطاقة غير المفعّلة مع وسيلة تواصل واضحة.</li>
+          <li>للمشتري: تواصل مع البائع مباشرة، وتأكد من الرمز قبل الشراء.</li>
+          <li>للتحقق: استخدم تبويب "التحقق من رمز البطاقة" وأدخل الرمز.</li>
+        </ol>
+        <p>ملاحظة: لا يوجد نظام دفع داخل التطبيق. عملية البيع تتم بين البائع والمشتري.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <small>نسخة تجريبية · تعمل دون قواعد بيانات · مدعومة بـ Google Sheets</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
