@@ -1,5 +1,5 @@
 /* global fetch */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwU-13v59BGFVMabeTuGLQIaZZh6Jnax-fNkauA7FURR8e3WMnunkSMZnE3cVdvd_ZL/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxNQ2fWfJYdrmMPyxPUZsUx3gpjLoTZkalRewQytLIGSYVzU2E8TUPq9EkEJMJwXrmj3Q/exec';
 
 const I18N = {
   ar: {
@@ -87,7 +87,7 @@ window.setGASUrl = function (url){
 async function apiGet(params){
   const url = new URL(GAS_URL);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), { method:'GET' });
+  const res = await fetch(url.toString(), { method:'GET', credentials:'omit' });
   if(!res.ok){
     const txt = await res.text().catch(()=>'');
     throw new Error(`GET ${res.status} ${res.statusText} — ${txt.slice(0,200)}`);
@@ -125,7 +125,7 @@ document.getElementById('btn-ping').addEventListener('click', async ()=>{
   }catch(err){ alert('Ping error: ' + err); }
 });
 
-// Check
+// Check (POST بدل GET)
 const formCheck = document.getElementById('form-check');
 const checkResult = document.getElementById('check-result');
 formCheck.addEventListener('submit', async (e)=>{
@@ -134,7 +134,7 @@ formCheck.addEventListener('submit', async (e)=>{
   checkResult.textContent = dict.check.checking;
   try {
     const code = document.getElementById('check-code').value.trim();
-    const data = await apiGet({ action:'checkCard', code });
+    const data = await apiPost('checkCard', { code });
     if(!data.found){
       checkResult.innerHTML = `<span class="warn">${dict.check.notFound}</span>`;
       return;
@@ -211,7 +211,7 @@ async function loadMarket(){
   const dict = I18N[localStorage.getItem('lang')||'ar'];
   marketList.innerHTML = `<div class="card">${dict.market.loading}</div>`;
   try{
-    const data = await apiGet({ action:'listMarket' });
+    const data = await apiPost('listMarket', {}); // POST بدل GET
     marketData = data.rows || [];
     renderMarket();
   }catch(err){
