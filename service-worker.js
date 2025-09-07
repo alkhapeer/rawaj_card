@@ -1,12 +1,21 @@
-// App Shell cache-first service worker (v3)
-const CACHE_NAME = 'cards-pwa-v3';
+// App Shell cache-first service worker (v4)
+const CACHE_NAME = 'cards-pwa-v4';
 const ASSETS = [
   './','./index.html','./styles.css','./app.js','./manifest.json',
+  // لو الأيقونات موجودة فعلاً، سيب السطور دي. لو لأ، احذفها مؤقتًا:
   './assets/icon-192.png','./assets/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    try {
+      await cache.addAll(ASSETS);
+    } catch (e) {
+      console.warn('Precache skipped:', e);
+    }
+    self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
