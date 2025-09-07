@@ -1,5 +1,5 @@
 /* global fetch */
-const GAS_URL = localStorage.getItem('GAS_URL') || 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+const GAS_URL = localStorage.getItem('GAS_URL') || 'https://script.google.com/macros/s/10kMC909I4IhPo4X5cZV7ii-DqQOCpl5kgHplW7Gbw8A/exec';
 
 const I18N = {
   ar: {
