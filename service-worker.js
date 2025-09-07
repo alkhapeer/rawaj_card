@@ -3,7 +3,7 @@ const CACHE_NAME = 'cards-pwa-v4';
 const ASSETS = [
   './','./index.html','./styles.css','./app.js','./manifest.json',
   // لو الأيقونات موجودة فعلاً، سيب السطور دي. لو لأ، احذفها مؤقتًا:
-  './assets/icon-192.png','./assets/icon-512.png'
+  './icon-192.png','./icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
